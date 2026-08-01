@@ -123,24 +123,24 @@ text(P2(1)+0.01, P2(2), P2(3), ' P2')
 text(P3(1)+0.01, P3(2), P3(3), ' P3')
 text(P4(1)+0.01, P4(2), P4(3), ' P4')
 grid on
-title('Abgefahrene Bahn im Raum (P1 -> P2 -> P3 -> P4 -> P1)')
+title('Sollbahn (P1 -> P2 -> P3 -> P4 -> P1)')
 xlabel('X [m]'); ylabel('Y [m]'); zlabel('Z [m]')
 
 figure('Name', 'Dynamik der Bahn');
 subplot(2,1,1)
 plot(t_gesamt, v_gesamt, 'LineWidth', 1.5); grid on;
-title('Bahngeschwindigkeit über der Zeit')
+title('Bahngeschwindigkeit')
 ylabel('Geschwindigkeit [m/s]')
 
 subplot(2,1,2)
 plot(t_gesamt, a_gesamt, 'LineWidth', 1.5); grid on;
-title('Bahnbeschleunigung über der Zeit')
+title('Bahnbeschleunigung')
 xlabel('Zeit [s]'); ylabel('Beschleunigung [m/s^2]')
 
 figure('Name', 'Achswinkel');
 subplot(2,1,1)
 plot(t_gesamt, vecPhi1*180/pi, t_gesamt, vecPhi2*180/pi, 'LineWidth', 1.5); grid on;
-title('Winkel \phi_1 und \phi_2 über der Zeit')
+title('Winkel \phi_1 und \phi_2')
 ylabel('Winkel [°]')
 legend({'\Phi_1', '\Phi_2'}, 'Location', 'best');
 
@@ -149,3 +149,74 @@ plot(t_gesamt, vecPhi1_punkt, t_gesamt, vecPhi2_punkt, 'LineWidth', 1.5); grid o
 title('Winkelgeschwindigkeit \omega_1 und \omega_2')
 xlabel('Zeit [s]'); ylabel('Geschwindigkeit [rad/s]')
 legend({'\omega_1', '\omega_2'}, 'Location', 'best');
+
+%% Überprüfung per Handrechnung
+
+% Test und Daten für die Handrechnung
+% Winkelgeschwindigkeiten mittels zentraler Differenz
+vecPhi1_punkt = gradient(vecPhi1) / ts; 
+vecPhi2_punkt = gradient(vecPhi2) / ts; 
+
+testpos = 900; % Entspricht t = 0.9s bei ts = 1ms
+
+% Extraktion der exakten Werte an der Testposition für den Bericht
+phi1_test = vecPhi1(testpos);
+phi2_test = vecPhi2(testpos);
+omega1_test = vecPhi1_punkt(testpos);
+omega2_test = vecPhi2_punkt(testpos);
+
+% Deine externe Funktion zur Kontrolle (alternativ hier direkt die Formeln eintragen)
+[v_x, v_y, x_tcp, y_tcp] = IdealWert(vecPhi1, vecPhi2, vecPhi1_punkt, vecPhi2_punkt, testpos);
+
+% Visualisierung
+figure('Name', 'Winkelgeschwindigkeiten')
+plot(t, vecPhi1_punkt, 'LineWidth', 1.5);
+hold on; grid on;
+plot(t, vecPhi2_punkt, 'LineWidth', 1.5);
+title('Winkelgeschwindigkeit über der Zeit \omega_1 und \omega_2')
+xlabel('Zeit [s]')
+ylabel('Winkelgeschwindigkeit [rad/s]')
+legend({'\omega_1','\omega_2'}, 'Location', 'best');
+
+%% LOKALE FUNKTIONEN
+
+function [v_x, v_y, x_tcp, y_tcp] = IdealWert(vecPhi1, vecPhi2, vecPhi1_punkt, vecPhi2_punkt, testpos)
+    % 1. Konstanten laut Datenblatt (Armlängen in m)
+    l1 = 0.200;
+    l2 = 0.250;
+
+    % 2. Werte für den gewählten Zeitpunkt (testpos) extrahieren
+    % WICHTIG: Die -pi/4 Verschiebung aus der inversen Kinematik muss 
+    % hier für die globale Weltkoordinate wieder rückgängig gemacht werden (+pi/4)!
+    phi1 = vecPhi1(testpos) + pi/4; 
+    phi2 = vecPhi2(testpos);
+    
+    omega1 = vecPhi1_punkt(testpos);
+    omega2 = vecPhi2_punkt(testpos);
+
+    % 3. Vorwärtskinematik (Position berechnen)
+    x_tcp = l1 * cos(phi1) + l2 * cos(phi1 + phi2);
+    y_tcp = l1 * sin(phi1) + l2 * sin(phi1 + phi2);
+
+    % 4. Differenzielle Kinematik (Geschwindigkeiten über Jacobi-Matrix berechnen)
+    % J11 = -l1*sin(phi1) - l2*sin(phi1+phi2)
+    % J12 = -l2*sin(phi1+phi2)
+    % J21 = l1*cos(phi1) + l2*cos(phi1+phi2)
+    % J22 = l2*cos(phi1+phi2)
+    
+    v_x = (-l1 * sin(phi1) - l2 * sin(phi1 + phi2)) * omega1 + (-l2 * sin(phi1 + phi2)) * omega2;
+    v_y = (l1 * cos(phi1) + l2 * cos(phi1 + phi2)) * omega1 + (l2 * cos(phi1 + phi2)) * omega2;
+    
+    % Konsolenausgabe für die Dokumentation / Handrechnung
+    fprintf('\n--- ERGEBNISSE DER HANDRECHNUNG BEI INDEX %d ---\n', testpos);
+    fprintf('Eingangswerte:\n');
+    fprintf('  Phi_1:    %.4f rad\n', phi1);
+    fprintf('  Phi_2:    %.4f rad\n', phi2);
+    fprintf('  Omega_1:  %.4f rad/s\n', omega1);
+    fprintf('  Omega_2:  %.4f rad/s\n', omega2);
+    fprintf('Berechnete kartesische Werte:\n');
+    fprintf('  X_tcp:    %.4f m\n', x_tcp);
+    fprintf('  Y_tcp:    %.4f m\n', y_tcp);
+    fprintf('  v_x:      %.4f m/s\n', v_x);
+    fprintf('  v_y:      %.4f m/s\n\n', v_y);
+end
