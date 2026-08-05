@@ -83,7 +83,7 @@ for k = 1:num_segments
     t_aktuell = t_aktuell + tges;
 end
 
-%% 3. Analytische Inverse Kinematik (Optimiert für MATLAB 2025b, ohne 'syms')
+%% 3. Analytische Inverse Kinematik (Optimiert für MATLAB 2025b, ohne 'syms') mit Export
 l1 = 0.200; % Armlänge 1 in m
 l2 = 0.250; % Armlänge 2 in m
 
@@ -105,8 +105,8 @@ vecPhi1 = vecPhi1 - pi/4;
 % Export für SimulationX
 tempVec1 = [t_gesamt, vecPhi1]; 
 tempVec2 = [t_gesamt, vecPhi2]; 
-dlmwrite('Winkel_Phi1_lang.txt', tempVec1, 'precision', 10);
-dlmwrite('Winkel_Phi2_lang.txt', tempVec2, 'precision', 10);
+dlmwrite('Phi1.txt', tempVec1, 'precision', 10);
+dlmwrite('Phi2.txt', tempVec2, 'precision', 10);
 
 %% 4. Numerische Ableitung (Geschwindigkeit)
 % Da wir ein festes Raster ts haben, können wir diff nutzen
@@ -169,15 +169,14 @@ omega2_test = vecPhi2_punkt(testpos);
 [v_x, v_y, x_tcp, y_tcp] = IdealWert(vecPhi1, vecPhi2, vecPhi1_punkt, vecPhi2_punkt, testpos);
 
 % Visualisierung
-figure('Name', 'Winkelgeschwindigkeiten')
-plot(t, vecPhi1_punkt, 'LineWidth', 1.5);
+figure('Name', 'Winkelgeschwindigkeiten (Handrechnung)')
+plot(t_gesamt, vecPhi1_punkt, 'LineWidth', 1.5); % Hier t_gesamt nutzen!
 hold on; grid on;
-plot(t, vecPhi2_punkt, 'LineWidth', 1.5);
+plot(t_gesamt, vecPhi2_punkt, 'LineWidth', 1.5); % Hier t_gesamt nutzen!
 title('Winkelgeschwindigkeit über der Zeit \omega_1 und \omega_2')
 xlabel('Zeit [s]')
 ylabel('Winkelgeschwindigkeit [rad/s]')
 legend({'\omega_1','\omega_2'}, 'Location', 'best');
-
 %% LOKALE FUNKTIONEN
 
 function [v_x, v_y, x_tcp, y_tcp] = IdealWert(vecPhi1, vecPhi2, vecPhi1_punkt, vecPhi2_punkt, testpos)
