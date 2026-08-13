@@ -4,8 +4,8 @@ clear all; clc; close all;
 % Punkte im Raum [x, y, z] in Metern
 P1 = [0.0, 0.3, 0.2];
 P2 = [0.3, 0.0, 0.1];
-P3 = [0.3, 0.3, 0.25];
-P4 = [0.4, 0.1, 0.15];
+P3 = [-0.3, 0.3, 0.25];
+P4 = [-0.4, -0.1, 0.15];
 
 % Definiere die Gesamtbahn: P1 -> P2 -> P3 -> P4 -> P1
 P_seq = [P1; P2; P3; P4; P1];
@@ -99,6 +99,12 @@ cos_phi2 = max(min(cos_phi2, 1), -1);
 vecPhi2 = acos(cos_phi2); 
 vecPhi1 = atan2(y, x) - atan2(l2 * sin(vecPhi2), l1 + l2 * cos_phi2);
 
+% WICHTIG: Mathematische 360°-Winkelsprünge (Phase Wrapping) entfernen
+vecPhi1 = unwrap(vecPhi1);
+vecPhi2 = unwrap(vecPhi2);
+
+% Verschiebung des Koordinatensystems (wie in deinem Ursprungsskript)
+vecPhi1 = vecPhi1 - pi/4;
 % Verschiebung des Koordinatensystems (wie in deinem Ursprungsskript)
 vecPhi1 = vecPhi1 - pi/4;
 
