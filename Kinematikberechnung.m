@@ -163,7 +163,7 @@ legend({'\omega_1', '\omega_2'}, 'Location', 'best');
 vecPhi1_punkt = gradient(vecPhi1) / ts; 
 vecPhi2_punkt = gradient(vecPhi2) / ts; 
 
-testpos = 900; % Entspricht t = 0.9s bei ts = 1ms
+testpos = 1000; % Entspricht t = 0.9s bei ts = 1ms
 
 % Extraktion der exakten Werte an der Testposition für den Bericht
 phi1_test = vecPhi1(testpos);
